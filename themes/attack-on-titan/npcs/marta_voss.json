@@ -1,0 +1,56 @@
+{
+ "id": "marta_voss",
+ "name": "Instructor Marta Voss",
+ "role": "Garrison cadet instructor",
+ "desc": "Forties, scarred jaw, cropped grey-streaked hair, weathered Garrison cloak. Former wall-top cannoneer turned drill instructor. Blunt, tired, and quietly protective of her cadets.",
+ "personality": "Blunt, dry, watchful. Hides worry behind orders. Hates paperwork and hates unanswered letters more.",
+ "voice": "Short sentences. Rarely raises her voice; doesn't need to.",
+ "sprite": {
+  "colors": {
+   "accent": "#8a6d3b",
+   "cloak": "#4a3f2f",
+   "hair": "#6b6259",
+   "skin": "#d8a880",
+   "top": "#5a5548"
+  },
+  "layers": [
+   "tpl:body",
+   "tpl:legs_pants",
+   "tpl:boots",
+   "tpl:top_coat",
+   "tpl:cloak",
+   "tpl:hair_short"
+  ],
+  "params": {
+   "build": "normal"
+  }
+ },
+ "portrait": {
+  "colors": {
+   "accent": "#8a6d3b",
+   "hair": "#6b6259",
+   "skin": "#d8a880",
+   "top": "#4a3f2f"
+  },
+  "layers": [
+   "tpl:p_base",
+   "tpl:p_face_calm",
+   "tpl:p_outfit_uniform",
+   "tpl:p_hair_short"
+  ]
+ },
+ "stats": {
+  "agi": 12,
+  "cha": 11,
+  "end": 14,
+  "int": 13,
+  "res": 15,
+  "str": 13
+ },
+ "tags": [
+  "garrison",
+  "instructor",
+  "ostmark"
+ ],
+ "created": "2026-09-20T02:43:01"
+}

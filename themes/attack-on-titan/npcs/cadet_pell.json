@@ -1,0 +1,54 @@
+{
+ "id": "cadet_pell",
+ "name": "Cadet Pell",
+ "role": "Cadet, Eugene's bunkmate",
+ "desc": "Sixteen, gangly, freckled, uniform slightly too big. Talks when nervous, which is always. Terrified of Titans and has never once run from a friend.",
+ "personality": "Chatty, anxious, loyal. Jokes to keep from shaking.",
+ "voice": "Fast, rambling, trails off mid-thought.",
+ "sprite": {
+  "colors": {
+   "accent": "#8a6d3b",
+   "hair": "#a5622c",
+   "skin": "#e0b48c",
+   "top": "#5b6b4a"
+  },
+  "layers": [
+   "tpl:body",
+   "tpl:legs_pants",
+   "tpl:boots",
+   "tpl:top_jacket",
+   "tpl:hair_spiky"
+  ],
+  "params": {
+   "build": "slim"
+  }
+ },
+ "portrait": {
+  "colors": {
+   "accent": "#8a6d3b",
+   "hair": "#a5622c",
+   "skin": "#e0b48c",
+   "top": "#5b6b4a"
+  },
+  "layers": [
+   "tpl:p_base",
+   "tpl:p_face_scared",
+   "tpl:p_outfit_uniform",
+   "tpl:p_hair_spiky"
+  ]
+ },
+ "stats": {
+  "agi": 11,
+  "cha": 12,
+  "end": 11,
+  "int": 12,
+  "res": 8,
+  "str": 10
+ },
+ "tags": [
+  "cadet",
+  "ostmark",
+  "friend"
+ ],
+ "created": "2026-09-20T02:43:05"
+}

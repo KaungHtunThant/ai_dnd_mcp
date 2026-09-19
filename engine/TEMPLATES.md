@@ -1,0 +1,230 @@
+# Shared template library
+
+Reference with `tpl:<name>` in recipes. Colour slots: skin hair top accent legs boots metal wood glow eyes white mouth primary secondary detail outline.
+
+## character
+- `tpl:body` - Humanoid base body with eyes. build=slim|normal|broad params={"build": "normal", "eyes": true}
+- `tpl:hair_short` - Short hair
+- `tpl:hair_long` - Long hair past shoulders
+- `tpl:hair_spiky` - Spiky hair
+- `tpl:hair_bun` - Hair tied in a top bun
+- `tpl:hair_ponytail` - Ponytail
+- `tpl:hair_mohawk` - Mohawk
+- `tpl:hair_curly` - Big curly hair
+- `tpl:beard` - Full beard
+- `tpl:top_shirt` - Short-sleeve shirt/tunic with belt params={"build": "normal"}
+- `tpl:top_coat` - Long coat with sleeves and tails params={"build": "normal"}
+- `tpl:top_robe` - Floor-length robe params={"build": "normal"}
+- `tpl:top_armor` - Plate/combat armour with pauldrons params={"build": "normal"}
+- `tpl:top_jacket` - Open jacket over a shirt (accent) params={"build": "normal"}
+- `tpl:top_vest` - Sleeveless vest/harness params={"build": "normal"}
+- `tpl:cloak` - Cloak/cape hanging behind
+- `tpl:wings` - Wings behind body (feathered/bat by colours)
+- `tpl:legs_pants` - Trousers
+- `tpl:legs_skirt` - Skirt/kilt
+- `tpl:boots` - Boots
+- `tpl:hat_hood` - Hood framing the face
+- `tpl:hat_helmet` - Metal helmet with visor slit
+- `tpl:hat_cap` - Cap with brim
+- `tpl:hat_wizard` - Tall pointed hat with brim
+- `tpl:hat_wide` - Wide-brim hat (cowboy/ranger/detective)
+- `tpl:crown` - Crown/circlet
+- `tpl:horns` - Horns
+- `tpl:ears_pointy` - Pointed ears (elf etc.)
+- `tpl:mask` - Lower-face mask/respirator
+- `tpl:goggles` - Goggles/visor over eyes
+- `tpl:eyepatch` - Eyepatch
+- `tpl:tail` - Tail
+
+## portrait
+- `tpl:p_base` - Portrait base: head, neck, shoulders (skin) params={"jaw": "normal"}
+- `tpl:p_face_neutral` - Face expression: neutral
+- `tpl:p_face_happy` - Face expression: happy
+- `tpl:p_face_laugh` - Face expression: laugh
+- `tpl:p_face_angry` - Face expression: angry
+- `tpl:p_face_sad` - Face expression: sad
+- `tpl:p_face_surprised` - Face expression: surprised
+- `tpl:p_face_smirk` - Face expression: smirk
+- `tpl:p_face_hurt` - Face expression: hurt
+- `tpl:p_face_calm` - Face expression: calm
+- `tpl:p_face_determined` - Face expression: determined
+- `tpl:p_face_scared` - Face expression: scared
+- `tpl:p_hair_short` - Short hair
+- `tpl:p_hair_long` - Long hair (front strands). Pair with p_hair_back.
+- `tpl:p_hair_back` - Hair mass behind head/shoulders (for long styles)
+- `tpl:p_hair_spiky` - Spiky hair
+- `tpl:p_hair_bun` - Hair in a bun
+- `tpl:p_hair_mohawk` - Mohawk
+- `tpl:p_hair_curly` - Big curly/afro hair
+- `tpl:p_hair_bob` - Chin-length bob
+- `tpl:p_hair_slick` - Slicked-back / undercut
+- `tpl:p_outfit_shirt` - Simple shirt/tunic with V collar
+- `tpl:p_outfit_coat` - Coat with lapels and collar
+- `tpl:p_outfit_armor` - Armour with pauldrons and gorget
+- `tpl:p_outfit_robe` - Robe with high collar
+- `tpl:p_outfit_hoodie` - Hoodie / hood down behind neck
+- `tpl:p_outfit_uniform` - Uniform with buttons and badge
+- `tpl:p_outfit_rags` - Ragged/worn clothes
+- `tpl:p_hat_hood` - Hood framing the face
+- `tpl:p_hat_helmet` - Helmet with cheek guards
+- `tpl:p_hat_cap` - Cap with brim
+- `tpl:p_hat_wizard` - Pointed wizard/witch hat
+- `tpl:p_hat_wide` - Wide-brim hat (fedora/cowboy/ranger)
+- `tpl:p_crown` - Crown
+- `tpl:p_headband` - Headband/bandana
+- `tpl:p_horns` - Horns
+- `tpl:p_beard` - Full beard
+- `tpl:p_mustache` - Mustache
+- `tpl:p_glasses` - Glasses
+- `tpl:p_visor` - Tech visor/goggles across eyes
+- `tpl:p_eyepatch` - Eyepatch
+- `tpl:p_scar` - Scar across the eye
+- `tpl:p_mask` - Lower-face mask/respirator
+- `tpl:p_marks` - Glowing facial marks/tattoo/cyber lines
+- `tpl:p_ears_pointy` - Pointed ears
+- `tpl:p_earring` - Earring
+
+## creature
+- `tpl:cr_slime` - Slime/ooze/blob 16x16
+- `tpl:cr_bat` - Bat/small flyer 16x16
+- `tpl:cr_beast` - Four-legged beast (wolf/hound/cat) 24x16 params={"horns": false}
+- `tpl:cr_spider` - Spider/insect/crawler 16x16
+- `tpl:cr_skeleton` - Skeleton/undead humanoid 16x24
+- `tpl:cr_ghost` - Ghost/spirit/wraith 16x24
+- `tpl:cr_golem` - Hulking golem/robot/brute 24x24
+- `tpl:cr_serpent` - Serpent/worm/eel 24x16
+- `tpl:cr_eye` - Floating eye/orb/drone 16x16
+- `tpl:cr_drone` - Hover drone/bot 16x16
+- `tpl:cr_plant` - Carnivorous plant/treant sprout 16x24
+- `tpl:cr_rat` - Rat/vermin/small critter 16x16
+- `tpl:cr_drake` - Drake/dragon/large winged beast 32x24
+
+## tile
+- `tpl:tile_floor_stone` - Stone flagstone floor
+- `tpl:tile_floor_wood` - Wooden plank floor
+- `tpl:tile_floor_metal` - Metal deck plates
+- `tpl:tile_floor_tile` - Checkered tiles (palace/lab/diner)
+- `tpl:tile_grass` - Grass/meadow
+- `tpl:tile_dirt` - Dirt/earth/mud ground
+- `tpl:tile_sand` - Sand/desert/beach
+- `tpl:tile_snow` - Snow/ice ground
+- `tpl:tile_water` - Water (impassable unless swimming)
+- `tpl:tile_lava` - Lava/acid/toxic pool (glow)
+- `tpl:tile_void` - Pit/chasm/void
+- `tpl:tile_road` - Paved road/cobblestone
+- `tpl:tile_wall_brick` - Brick/masonry wall (solid)
+- `tpl:tile_wall_rock` - Natural rock/cave wall (solid)
+- `tpl:tile_wall_metal` - Metal bulkhead wall (solid)
+- `tpl:tile_wall_wood` - Wooden wall/palisade (solid)
+- `tpl:tile_wall_hedge` - Hedge/dense foliage wall (solid)
+- `tpl:tile_door` - Closed door
+- `tpl:tile_door_open` - Open doorway
+- `tpl:tile_stairs_down` - Stairs down / exit
+- `tpl:tile_stairs_up` - Stairs up
+- `tpl:tile_bridge` - Bridge/walkway planks over water or pit
+- `tpl:tile_tree` - Tree (top-down canopy, solid)
+- `tpl:tile_rock` - Boulder on ground (solid)
+- `tpl:tile_pillar` - Pillar/column (solid)
+- `tpl:tile_rubble` - Rubble/debris floor (difficult terrain)
+
+## object
+- `tpl:obj_chest` - Treasure chest/lootbox params={"open": false}
+- `tpl:obj_crate` - Crate/supply box
+- `tpl:obj_barrel` - Barrel/drum/canister
+- `tpl:obj_table` - Table/desk
+- `tpl:obj_chair` - Chair/stool
+- `tpl:obj_bed` - Bed/bunk/cot
+- `tpl:obj_shelf` - Bookshelf/cabinet
+- `tpl:obj_torch` - Wall torch/sconce/lamp (light source)
+- `tpl:obj_lamppost` - Street lamp/lantern post (16x24)
+- `tpl:obj_campfire` - Campfire/brazier
+- `tpl:obj_altar` - Altar/pedestal/shrine
+- `tpl:obj_statue` - Statue (16x24)
+- `tpl:obj_sign` - Signpost/notice board
+- `tpl:obj_lever` - Lever/switch/button
+- `tpl:obj_trap` - Spike trap/floor hazard
+- `tpl:obj_bones` - Bones/remains
+- `tpl:obj_terminal` - Computer terminal/console/machine
+- `tpl:obj_crystal` - Crystal/gem cluster/relic
+- `tpl:obj_pot` - Pot/urn/vase/jar
+- `tpl:obj_cauldron` - Cauldron/vat
+- `tpl:obj_grave` - Gravestone/tomb marker
+- `tpl:obj_portal` - Portal/gate/rift (16x24)
+- `tpl:obj_fence` - Fence/barricade section
+- `tpl:obj_vehicle` - Cart/wagon/car/vehicle (32x16)
+
+## item
+- `tpl:held_sword` - Sword in right hand
+- `tpl:held_staff` - Staff with glowing orb
+- `tpl:held_dagger` - Dagger/knife
+- `tpl:held_gun` - Pistol/blaster
+- `tpl:held_rifle` - Rifle/long gun held diagonally
+- `tpl:held_bow` - Bow
+- `tpl:held_axe` - Axe/hammer
+- `tpl:held_torch` - Torch/flare
+- `tpl:offhand_shield` - Shield on left arm
+- `tpl:offhand_lantern` - Lantern in left hand
+- `tpl:offhand_book` - Book/tablet in left hand
+- `tpl:item_potion` - Potion/vial/stim
+- `tpl:item_scroll` - Scroll/letter/document
+- `tpl:item_key` - Key/keycard
+- `tpl:item_coins` - Coins/money/credits
+- `tpl:item_gem` - Gem/jewel/data-chip
+- `tpl:item_food` - Food/ration
+- `tpl:item_sword` - Sword/blade icon
+- `tpl:item_gun` - Gun icon
+- `tpl:item_armor` - Armour/vest icon
+- `tpl:item_bag` - Bag/pouch/backpack
+- `tpl:item_tool` - Tool/wrench/lockpick kit
+- `tpl:item_book` - Book/tome/journal
+- `tpl:item_ring` - Ring/amulet/trinket
+
+## icon
+- `tpl:ic_heart` - UI icon: health
+- `tpl:ic_drop` - UI icon: mana
+- `tpl:ic_bolt` - UI icon: energy
+- `tpl:ic_shield` - UI icon: defense
+- `tpl:ic_coin` - UI icon: gold
+- `tpl:ic_star` - UI icon: xp
+- `tpl:ic_skull` - UI icon: death
+- `tpl:ic_eye` - UI icon: perception
+- `tpl:ic_eye_closed` - UI icon: hidden
+- `tpl:ic_flame` - UI icon: burning
+- `tpl:ic_poison` - UI icon: poisoned
+- `tpl:ic_stun` - UI icon: stunned
+- `tpl:ic_halo` - UI icon: blessed
+- `tpl:ic_blood` - UI icon: bleeding
+- `tpl:ic_snow` - UI icon: frozen
+- `tpl:ic_sleep` - UI icon: sleeping
+- `tpl:ic_fear` - UI icon: frightened
+- `tpl:ic_charm` - UI icon: charmed
+- `tpl:ic_sweat` - UI icon: exhausted
+- `tpl:ic_chain` - UI icon: restrained
+- `tpl:ic_arrow_down` - UI icon: prone
+- `tpl:ic_hourglass` - UI icon: time
+- `tpl:ic_brain` - UI icon: sanity
+- `tpl:ic_fist` - UI icon: strength
+- `tpl:ic_feather` - UI icon: dexterity
+- `tpl:ic_mask` - UI icon: charisma
+- `tpl:ic_scroll` - UI icon: quest
+- `tpl:ic_bag` - UI icon: inventory
+- `tpl:ic_map` - UI icon: map
+- `tpl:ic_pin` - UI icon: marker
+- `tpl:ic_dice` - UI icon: dice
+- `tpl:ic_sun` - UI icon: day
+- `tpl:ic_moon` - UI icon: night
+- `tpl:ic_rain` - UI icon: rain
+- `tpl:ic_swords` - UI icon: combat
+- `tpl:ic_bang` - UI icon: alert
+- `tpl:ic_gear` - UI icon: settings
+- `tpl:ic_music` - UI icon: inspired
+- `tpl:ic_run` - UI icon: hasted
+
+## backdrop
+- `tpl:bd_outdoor` - Outdoor landscape: sky, celestial body, far hills, treeline/spires, ground. primary=sky, secondary=land, glow=sun/moon, detail=far hills params={"seed": 1, "trees": "pine", "celestial": true}
+- `tpl:bd_interior` - Interior room: back wall, floor, window, torches/lights. primary=wall, wood=floor, glow=lights, secondary=window sky params={"window": true, "lights": 2, "beams": true}
+- `tpl:bd_city` - City skyline/street at night: primary=sky, secondary=buildings, glow=lit windows/neon, road at bottom params={"seed": 3, "neon": true}
+- `tpl:bd_cave` - Cave/dungeon/underground: primary=rock, glow=crystals/fungus, secondary=pool params={"seed": 7, "crystals": true}
+- `tpl:bd_void` - Abstract void/space/dreamscape with stars and nebula: primary=void, glow=stars, accent=nebula params={"seed": 9}
+- `tpl:bd_ruins` - Ruins/temple/courtyard under open sky: primary=sky, detail=stone, secondary=ground/moss params={"seed": 4}
+- `tpl:bd_tech` - Sci-fi/industrial interior: metal panels, pipes, screens. metal=walls, glow=lights/screens params={"screens": true}

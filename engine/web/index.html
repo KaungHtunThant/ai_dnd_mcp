@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude DnD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&family=VT323&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Inter:wght@400;600&family=Cinzel:wght@700&family=Orbitron:wght@700&display=swap">
+<link rel="stylesheet" href="/web/style.css">
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <button id="btn-menu" class="tbtn" title="Menu">&#9776; Menu</button>
+    <div class="brand"><span class="logo">&#9670;</span> <span id="camp-name">Claude DnD</span></div>
+    <div id="loc" class="chip"></div>
+    <div id="clock" class="chip"></div>
+    <div id="turn" class="chip"></div>
+    <div id="dmstat" class="chip"></div>
+    <button id="btn-mode" class="tbtn" title="Live: the DM waits for your browser input. Nudge: queue actions, then type 'go' in chat.">Live</button>
+    <button id="btn-pause" class="tbtn" title="Stop the DM from waiting for input (saves usage)">Pause DM</button>
+    <button id="btn-voice" class="tbtn" title="Voiceover on/off">Voice: off</button>
+    <input id="vol" type="range" min="0" max="1" step="0.05" value="0.9" title="Voice volume">
+    <div id="conn" class="dot" title="connection"></div>
+  </header>
+
+  <aside id="left" class="panel">
+    <div id="pc"></div>
+    <div id="party"></div>
+  </aside>
+
+  <main id="center">
+    <div id="stage">
+      <div id="scene-layer"></div>
+      <div id="map-layer"></div>
+      <div id="setup-layer"></div>
+      <div id="tint"></div>
+      <div id="weather"></div>
+      <div id="combat-bar"></div>
+      <div id="floaters"></div>
+      <div id="toasts"></div>
+      <div id="showcase" class="hidden"></div>
+      <div id="dice" class="hidden"></div>
+      <div id="titlecard" class="hidden"></div>
+      <div id="prevcard" class="hidden"></div>
+      <div id="stage-title"></div>
+    </div>
+    <div id="dialogue" class="panel">
+      <div id="dlg-portrait"></div>
+      <div id="dlg-body">
+        <div id="dlg-name"></div>
+        <div id="dlg-text"></div>
+      </div>
+      <div id="dlg-more" class="hidden">&#9660;</div>
+    </div>
+    <div id="actionbar" class="panel">
+      <div class="ab-head">
+        <div class="ab-tabs">
+          <button data-t="speak" class="on" title="Alt+1">Speak</button>
+          <button data-t="do" title="Alt+2">Do</button>
+          <button data-t="dm" title="Alt+3">DM</button>
+        </div>
+        <div id="ab-status"></div>
+      </div>
+      <div class="ab-row" id="ab-speak-opts">
+        <select id="ab-manner" title="Manner"></select>
+        <input id="ab-manner-custom" class="hidden" placeholder="custom manner" maxlength="30">
+        <input id="ab-target" list="ab-targets" placeholder="To: (optional)" maxlength="60">
+        <datalist id="ab-targets"></datalist>
+      </div>
+      <div class="ab-row">
+        <textarea id="ab-text" rows="2" maxlength="2000" placeholder="What do you say?"></textarea>
+        <button id="ab-send">Send</button>
+      </div>
+      <div id="ab-pending"></div>
+    </div>
+  </main>
+
+  <aside id="right" class="panel">
+    <nav id="tabs"></nav>
+    <section id="tab-body"></section>
+  </aside>
+</div>
+
+<div id="menu" class="hidden"></div>
+<div id="menu-dice" class="hidden"></div>
+<div id="loading" class="hidden"><div class="ld-box"><div class="ld-label"></div><div class="ld-bar"><i></i></div><div class="ld-sub"></div><div class="ld-actions"></div></div></div>
+<div id="boot"><div class="ld-box"><div class="boot-logo">Claude DnD</div><div class="ld-bar"><i></i></div><div class="ld-sub">Loading&hellip;</div></div></div>
+<div id="tooltip" class="hidden"></div>
+<script src="/web/dice.js"></script>
+<script src="/web/app.js"></script>
+<script src="/web/menu.js"></script>
+</body>
+</html>

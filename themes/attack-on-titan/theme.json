@@ -1,0 +1,205 @@
+{
+ "slug": "attack-on-titan",
+ "name": "attack-on-titan",
+ "description": "Humanity huddles behind three concentric walls — Maria, Rose, Sina — while man-eating Titans roam the world beyond. Soldiers fight with ODM gear (omni-directional mobility), twin blades and grit in the Survey Corps, Garrison and Military Police. Original characters and campaigns set in this world; secrets of the walls, the Titans and the outside world are uncovered run by run.",
+ "tone": "grim, desperate, high-stakes military dark fantasy; hope is scarce and costly, victories are paid for in blood",
+ "created": "2026-09-20T02:35:12",
+ "palette": {
+  "accent": "#8a6d3b",
+  "blood": "#8f1d21",
+  "cloak": "#3f5a3a",
+  "glow": "#d9e6c8",
+  "hair": "#3a2a1c",
+  "metal": "#a9b3ba",
+  "outline": "#1b1a17",
+  "primary": "#4a5d3a",
+  "secondary": "#6b4f33",
+  "skin": "#e0b48c",
+  "steam": "#e8ecef",
+  "top": "#5b6b4a"
+ },
+ "stats": [
+  {
+   "abbr": "STR",
+   "icon": "tpl:ic_fist",
+   "key": "str",
+   "name": "Strength"
+  },
+  {
+   "abbr": "AGI",
+   "icon": "tpl:ic_fist",
+   "key": "agi",
+   "name": "Agility"
+  },
+  {
+   "abbr": "END",
+   "icon": "tpl:ic_fist",
+   "key": "end",
+   "name": "Endurance"
+  },
+  {
+   "abbr": "INT",
+   "icon": "tpl:ic_fist",
+   "key": "int",
+   "name": "Intellect"
+  },
+  {
+   "abbr": "RES",
+   "icon": "tpl:ic_fist",
+   "key": "res",
+   "name": "Resolve"
+  },
+  {
+   "abbr": "CHA",
+   "icon": "tpl:ic_fist",
+   "key": "cha",
+   "name": "Charisma"
+  }
+ ],
+ "resources": [
+  {
+   "color": "#c23a3a",
+   "icon": "tpl:ic_heart",
+   "key": "hp",
+   "name": "Health"
+  },
+  {
+   "color": "#9fc5d9",
+   "icon": "tpl:ic_heart",
+   "key": "gas",
+   "name": "ODM Gas"
+  },
+  {
+   "color": "#a9b3ba",
+   "icon": "tpl:ic_heart",
+   "key": "blades",
+   "name": "Blade Sets"
+  },
+  {
+   "color": "#d9a441",
+   "icon": "tpl:ic_heart",
+   "key": "resolve",
+   "name": "Resolve"
+  }
+ ],
+ "currency": {
+  "icon": "tpl:item_coins",
+  "name": "Wall coin"
+ },
+ "archetypes": [
+  {
+   "desc": "Beyond-the-walls expeditionary soldier. Master of ODM flight, scouting and hit-and-run Titan slaying. Short lives, great deeds.",
+   "id": "scout",
+   "name": "Survey Corps Scout",
+   "start_items": [
+    "ODM gear",
+    "2 blade sets",
+    "Green cloak",
+    "Signal flares"
+   ],
+   "stat_bonus": {
+    "agi": 2,
+    "res": 1
+   }
+  },
+  {
+   "desc": "Wall defender and cannon crew. Sturdy, practical, trained in fortifications, siege weapons and keeping civilians alive.",
+   "id": "garrison",
+   "name": "Garrison Soldier",
+   "start_items": [
+    "ODM gear",
+    "2 blade sets",
+    "Garrison cloak",
+    "Wall cannon manual"
+   ],
+   "stat_bonus": {
+    "end": 2,
+    "str": 1
+   }
+  },
+  {
+   "desc": "Interior-based law enforcer. Knows the politics, the informants, and the back alleys of Sina. Less Titan experience, more secrets.",
+   "id": "mp",
+   "name": "Military Police",
+   "start_items": [
+    "Flintlock rifle",
+    "Short blade",
+    "Unicorn-crest jacket",
+    "Forged papers"
+   ],
+   "stat_bonus": {
+    "cha": 2,
+    "int": 1
+   }
+  },
+  {
+   "desc": "Rear-line technician and field surgeon. Keeps ODM gear firing and comrades alive; a vital, fragile asset.",
+   "id": "engineer",
+   "name": "Gear Engineer & Medic",
+   "start_items": [
+    "Repair kit",
+    "Medical satchel",
+    "1 blade set",
+    "Spare gas canisters"
+   ],
+   "stat_bonus": {
+    "end": 1,
+    "int": 2
+   }
+  },
+  {
+   "desc": "A rare cadet with unnatural combat instincts and an unexplained bloodline. Terrifying talent, but the powers-that-be are watching.",
+   "id": "ackerman",
+   "name": "Awakened Prodigy",
+   "start_items": [
+    "ODM gear",
+    "2 blade sets",
+    "Cadet cloak"
+   ],
+   "stat_bonus": {
+    "agi": 2,
+    "res": -1,
+    "str": 1
+   }
+  }
+ ],
+ "conditions": {
+  "poisoned": "tpl:ic_poison",
+  "burning": "tpl:ic_flame",
+  "stunned": "tpl:ic_stun",
+  "blessed": "tpl:ic_halo",
+  "cursed": "tpl:ic_skull",
+  "bleeding": "tpl:ic_blood",
+  "frozen": "tpl:ic_snow",
+  "hidden": "tpl:ic_eye_closed",
+  "asleep": "tpl:ic_sleep",
+  "frightened": "tpl:ic_fear",
+  "charmed": "tpl:ic_charm",
+  "exhausted": "tpl:ic_sweat",
+  "restrained": "tpl:ic_chain",
+  "prone": "tpl:ic_arrow_down",
+  "slowed": "tpl:ic_hourglass",
+  "hasted": "tpl:ic_run",
+  "inspired": "tpl:ic_music",
+  "invisible": "tpl:ic_eye_closed",
+  "Bleeding": "tpl:ic_heart",
+  "Broken Blades": "tpl:ic_heart",
+  "Exhausted": "tpl:ic_heart",
+  "Gas-Starved": "tpl:ic_heart",
+  "Shaken": "tpl:ic_heart"
+ },
+ "ui": {
+  "accent": "#c9a24a",
+  "bg": "#14130f",
+  "panel": "#1f1d17",
+  "text": "#e8e3d3",
+  "font": "serif",
+  "title_font": "serif"
+ },
+ "terms": {
+  "companions": "Squad",
+  "inventory": "Kit",
+  "journal": "Field Log",
+  "quests": "Orders"
+ }
+}

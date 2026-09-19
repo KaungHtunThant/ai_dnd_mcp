@@ -1,0 +1,23 @@
+# Virtual environment (created by setup.bat, never committed)
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Runtime state written by the engine
+runtime.json
+inbox.json
+control.json
+dm_status.json
+setup_draft.json
+.browser_opened
+
+# Voice cache (regenerated on demand)
+cache/
+
+# Campaign saves (personal play state + hidden DM spoilers)
+campaigns/*.json
+
+# Claude desktop config backups
+claude_desktop_config.backup-*.json
