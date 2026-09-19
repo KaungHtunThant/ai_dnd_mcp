@@ -18,6 +18,14 @@ cache/
 
 # Campaign saves (personal play state + hidden DM spoilers)
 campaigns/*.json
+campaigns/snapshots/
+*.snapshot.json
+*.bak
+
+# Generated theme libraries: assets, maps, npcs, lore, tables, theme.json.
+# Themes are built by the DM at play time; only the placeholder is tracked.
+themes/*/
+!themes/README.txt
 
 # Claude desktop config backups
 claude_desktop_config.backup-*.json
