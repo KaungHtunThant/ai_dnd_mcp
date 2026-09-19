@@ -8,9 +8,12 @@ stats and dice. You play by typing what you do in the chat.
 1. Double-click **`setup.bat`**. It:
    - creates a private virtual environment in `.venv` (nothing is installed system-wide),
    - installs the only dependency (`mcp`) into it,
+   - creates your `config.json` from `config.sample.json` and **asks which port** the browser UI should use
+     (press Enter to take the suggested one; it skips ports already in use),
    - registers the `claude-dnd` MCP server in the Claude desktop app config (a backup of your config is saved first).
 2. **Fully quit and reopen the Claude desktop app.**
-3. In chat, say **"go"** (once per play session) so the DM connects. The game opens at http://127.0.0.1:8765/ with the
+3. In chat, say **"go"** (once per play session) so the DM connects. The game opens at the port you chose (8765 by
+   default) with the
    main menu: **New Game** (a setup wizard for world, rules, character, stats, look and party), **Continue** (your saves) and
    **Settings**.
 
@@ -21,17 +24,22 @@ If you only want the screen without the MCP (the DM then uses the command-line f
 ```
 Claude DnD/
   engine/        MCP server, UI server, web front end, pixel-art generator, DM guide
-  shared/        shared template library (≈210 mix-and-match parts) + catalog.html to browse them
-  themes/<name>/ one reusable library per theme: theme.json, manifest.json, assets/, maps/, npcs/, lore/, tables/
+  themes/<name>/ one reusable library per theme: theme.json, manifest.json, assets/, maps/, npcs/, lore/, tables/,
+                 plus a generated catalog.html of every part that theme is allowed to use
   campaigns/     one JSON file per campaign (all campaign + player data, snapshots, hidden DM notes = spoilers!)
-  config.json    UI host/port, browser auto-open, rollback depth
+  config.json    YOUR local settings - UI host/port, browser auto-open, rollback depth. Generated on setup and
+                 never committed, like a .env; edit it freely or rerun `engine/tools/init_config.py`.
+  config.sample.json  the committed template config.json is created from
 ```
 
 ## How the art works
 Everything is pixel art built from layers (body, clothes, hair, hats, gear; portrait base, face expression, outfit...)
-and recoloured through named colour slots. A theme reuses the shared templates and only saves new parts when the
-story needs something that doesn't exist yet. Every new part is stored in the theme and reused next time.
-Open `shared/catalog.html` to see the library.
+and recoloured through named colour slots. The engine ships ≈210 procedural parts, but each theme is **locked to its
+own vocabulary**: it declares which parts fit its genre, and anything outside that set is refused, so a cyberpunk
+campaign can never reach for a wizard hat. A theme reuses its admitted parts and only saves new ones when the story
+needs something that doesn't exist yet. Every new part is stored in the theme and reused next time.
+Open **`/catalog`** on the UI (the port from your `config.json`) while playing, to browse exactly what the current
+theme can use, drawn in its own palette.
 
 ## Playing in the browser
 - **Action bar** (under the dialogue box):

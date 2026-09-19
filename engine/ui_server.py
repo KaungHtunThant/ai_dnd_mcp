@@ -2,7 +2,8 @@
 
   python ui_server.py            -> serves http://127.0.0.1:8765/
 Endpoints: / (app), /web/*, /api/state, /api/events?since=N, /api/stream (SSE),
-           /r/<theme>.svg?r=<recipe json>&e=<expr>, /map/<theme>/<id>.svg, /part/<theme>/<ref>.svg
+           /r/<theme>.svg?r=<recipe json>&e=<expr>, /map/<theme>/<id>.svg, /part/<theme>/<ref>.svg,
+           /catalog[/<theme>] (that theme's part catalog, rebuilt on demand)
 """
 from __future__ import annotations
 import json, os, sys, threading, time, functools, mimetypes, socket, shutil
@@ -10,7 +11,7 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs, unquote
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from core import store, assets, api, tts, dice  # noqa: E402
+from core import store, assets, api, tts, dice, library  # noqa: E402
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 
@@ -25,7 +26,12 @@ def _mtime(p):
 @functools.lru_cache(maxsize=4096)
 def _render(theme, recipe_json, expr, ver):
     t = assets.load_theme(theme) if theme and theme != "_" else None
-    return assets.render_recipe(theme if t else None, json.loads(recipe_json), (t or {}).get("palette"), expr or None)
+    try:
+        return assets.render_recipe(theme if t else None, json.loads(recipe_json), (t or {}).get("palette"), expr or None)
+    except library.NotInTheme:
+        # a recipe saved before the theme's vocabulary narrowed: draw nothing rather than
+        # breaking the screen. The DM still gets the hard error from the tool that stores it.
+        return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"/>' 
 
 
 @functools.lru_cache(maxsize=64)
@@ -119,8 +125,9 @@ def regenerate(clear_voice=True):
             except Exception:
                 pass
     from tools import build_catalog
-    tpl = build_catalog.build()
-    return {"assets_rerendered": n, "templates": tpl, "voice_files_cleared": removed}
+    built = build_catalog.build_all()
+    return {"assets_rerendered": n, "catalogs": built, "templates": sum(built.values()),
+            "voice_files_cleared": removed}
 
 
 def format_all():
@@ -386,6 +393,16 @@ class H(BaseHTTPRequestHandler):
                 return self._send(503, json.dumps({"error": "edge-tts not installed - rerun setup.bat"}))
             except Exception as ex:
                 return self._send(502, json.dumps({"error": f"tts failed: {ex}"}))
+        if path == "/catalog" or path.startswith("/catalog/"):
+            from tools import build_catalog
+            slug = path[9:].strip("/") or (store.runtime().get("active") and
+                                           (store.read_json(store.CAMPAIGNS / f"{store.runtime()['active']}.json", {}) or {}).get("theme"))
+            if not slug:
+                return self._send(404, "No theme: start or load a campaign first, or use /catalog/<theme>.", "text/plain")
+            try:
+                return self._file(str(build_catalog.ensure(slug)))
+            except Exception as ex:
+                return self._send(500, f"catalog build failed: {ex}", "text/plain")
         if path.startswith("/map/") and path.endswith(".svg"):
             theme, mid = path[5:-4].split("/", 1)
             svg = _render_map(theme, mid, _ver(theme) + _mtime(assets.map_path(theme, mid)))

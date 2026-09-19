@@ -7,15 +7,19 @@ ROOT = Path(os.environ.get("CLAUDE_DND_ROOT") or Path(__file__).resolve().parent
 ENGINE = ROOT / "engine"
 THEMES = ROOT / "themes"
 CAMPAIGNS = ROOT / "campaigns"
-SHARED = ROOT / "shared"
 RUNTIME = ROOT / "runtime.json"
 CONFIG = ROOT / "config.json"
+CONFIG_SAMPLE = ROOT / "config.sample.json"
 INBOX = ROOT / "inbox.json"          # browser -> DM action queue (transient)
 CONTROL = ROOT / "control.json"      # browser-set play controls (mode, paused)
 DMSTATUS = ROOT / "dm_status.json"   # DM-set status (listening / thinking / idle, input lock)
 CACHE = ROOT / "cache"
 DRAFT = ROOT / "setup_draft.json"    # New Game wizard draft (browser)
 _lock = threading.RLock()
+
+
+class DMError(Exception):
+    """Any error worth showing the DM as a plain message instead of a traceback."""
 
 
 def now_iso():
@@ -62,13 +66,26 @@ def write_text(path, text):
     path.write_text(text, encoding="utf-8")
 
 
+CONFIG_DEFAULTS = {"ui_host": "127.0.0.1", "ui_port": 8765, "open_browser": True, "snapshots_kept": 20}
+
+
 def config():
+    """Local settings. config.json is per-machine and gitignored; config.sample.json is the
+    committed template. Missing keys fall back to CONFIG_DEFAULTS, so a missing or partial
+    file never stops the engine."""
     cfg = read_json(CONFIG, {}) or {}
-    cfg.setdefault("ui_host", "127.0.0.1")
-    cfg.setdefault("ui_port", 8765)
-    cfg.setdefault("open_browser", True)
-    cfg.setdefault("snapshots_kept", 20)
+    for k, v in CONFIG_DEFAULTS.items():
+        cfg.setdefault(k, v)
     return cfg
+
+
+def ensure_config():
+    """Materialise config.json from config.sample.json (or the built-in defaults) on first run,
+    so every install has a real file to edit. Returns the config."""
+    if not CONFIG.exists():
+        base = read_json(CONFIG_SAMPLE, None) or dict(CONFIG_DEFAULTS)
+        write_json(CONFIG, {**CONFIG_DEFAULTS, **base})
+    return config()
 
 
 # ---- runtime: active campaign + UI event stream ---------------------------
@@ -103,8 +120,9 @@ def touch():
 
 
 def ensure_dirs():
-    for d in (THEMES, CAMPAIGNS, SHARED):
+    for d in (THEMES, CAMPAIGNS):
         d.mkdir(parents=True, exist_ok=True)
+    ensure_config()
 
 
 # ---- cross-process lock (UI server and MCP both touch inbox.json) ----------

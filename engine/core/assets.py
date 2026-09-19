@@ -2,7 +2,7 @@
 from __future__ import annotations
 import json, functools
 from pathlib import Path
-from . import store
+from . import store, library
 from .pixel import Canvas, grid_rects, resolve_colors, svg_doc, render_grid
 from .templates import TEMPLATES, build_template
 
@@ -55,6 +55,7 @@ def resolve_part(slug, ref, params=None):
         t = TEMPLATES.get(name)
         if not t:
             return None
+        library.check(slug, name)
         rows = list(_tpl_rows(name, json.dumps(params, sort_keys=True)))
         return {"rows": rows, "legend": {}, "colors": t["colors"], "layer": t["layer"],
                 "w": max(len(r) for r in rows), "h": len(rows), "kind": t["kind"]}
@@ -142,7 +143,7 @@ def find(slug, query="", category=None, tags=None, include_templates=True, limit
                 results.append({"ref": aid, "source": "theme", "category": meta.get("category"),
                                 "desc": meta.get("desc", ""), "tags": meta.get("tags", []), "score": s + 0.5})
     if include_templates:
-        for name, t in TEMPLATES.items():
+        for name, t in library.templates_for(slug).items():
             if category and t["category"] != category:
                 continue
             hay = " ".join([name, t["desc"], " ".join(t["tags"]), t["category"]])
@@ -171,6 +172,7 @@ def register_asset(slug, aid, category, *, rows=None, legend=None, template=None
         tname = template[4:] if template.startswith("tpl:") else template
         if tname not in TEMPLATES:
             raise ValueError(f"unknown template {template}")
+        library.check(slug, tname)
         t = TEMPLATES[tname]
         layer = t["layer"] if layer is None else layer
         kind = kind or t["kind"]

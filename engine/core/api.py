@@ -6,7 +6,7 @@ name. Functions return JSON-serialisable dicts.
 from __future__ import annotations
 import copy, contextlib, random
 from pathlib import Path
-from . import store, assets, dice, tts
+from . import store, assets, dice, tts, library
 import time as _time
 from .store import slugify, now_iso
 
@@ -19,8 +19,7 @@ def tool(fn):
     return fn
 
 
-class DMError(Exception):
-    pass
+DMError = store.DMError   # library.NotInTheme subclasses it, so the lock reports cleanly
 
 
 # =====================================================================
@@ -191,7 +190,7 @@ def theme_info(theme: str) -> dict:
     by = {}
     for aid, meta in m["assets"].items():
         by.setdefault(meta["category"], []).append(aid)
-    return {"theme": t, "assets": by,
+    return {"theme": t, "assets": by, "library": {**library.summary(theme), "split_pairs": library.split_pairs(theme)},
             "maps": [p.stem for p in (d / "maps").glob("*.json")],
             "npcs": [p.stem for p in (d / "npcs").glob("*.json")],
             "lore": [p.stem for p in (d / "lore").glob("*.md")],
@@ -201,7 +200,8 @@ def theme_info(theme: str) -> dict:
 @tool
 def create_theme(name: str, description: str, palette: dict | None = None, stats: list | None = None,
                  resources: list | None = None, currency: dict | None = None, archetypes: list | None = None,
-                 conditions: dict | None = None, ui: dict | None = None, tone: str = "", terms: dict | None = None) -> dict:
+                 conditions: dict | None = None, ui: dict | None = None, tone: str = "", terms: dict | None = None,
+                 library_: dict | None = None) -> dict:
     """Create a NEW theme folder (only if no existing theme fits). Everything is reused by later campaigns.
     palette: default colour slots, e.g. {"outline":"#1a1523","skin":"#e0a878","top":"#3d6fa8","accent":"#c9a24a",
       "metal":"#9aa4b1","glow":"#7fe3ff","primary":"#6b6f7e","secondary":"#4f8a4b"}.
@@ -209,7 +209,12 @@ def create_theme(name: str, description: str, palette: dict | None = None, stats
     resources: [{"key":"hp","name":"Health","icon":"tpl:ic_heart","color":"#e0304a"}, {"key":"sanity",...}].
     currency: {"name":"credits","icon":"tpl:item_coins"}. archetypes: [{"id","name","desc","stat_bonus":{},"start_items":[],"look":{sprite recipe hint}}].
     conditions: {name: icon ref} extra/renamed conditions. ui: {"accent":"#hex","bg":"#hex","panel":"#hex","text":"#hex",
-      "font":"pixel|serif|mono|sans","title_font":...}. terms: rename UI words, e.g. {"journal":"Case Notes","quests":"Leads"}."""
+      "font":"pixel|serif|mono|sans","title_font":...}. terms: rename UI words, e.g. {"journal":"Case Notes","quests":"Leads"}.
+    library_: LOCK THE ART TO THE GENRE - always set this. {"mode":"locked","core":true,
+      "include_tags":["scifi","cyber","tech","modern","punk","urban"], "include":["tpl:obj_*","cr_drone"],
+      "exclude":["hair_bun"]}. core=true admits the genre-neutral scaffolding (bodies, faces, hair, every UI icon,
+      tile_void); include/exclude take template names or globs and exclude is applied last. Anything outside the set
+      is then refused by find_assets and by every recipe. Omit it and the theme stays "open" (all 211 templates)."""
     slug = slugify(name)
     d = assets.theme_dir(slug)
     if (d / "theme.json").exists():
@@ -221,7 +226,9 @@ def create_theme(name: str, description: str, palette: dict | None = None, stats
          "currency": currency or {"name": "gold", "icon": "tpl:ic_coin"}, "archetypes": archetypes or [],
          "conditions": {**DEFAULT_CONDITIONS, **(conditions or {})},
          "ui": {"accent": "#c9a24a", "bg": "#15121c", "panel": "#221d2c", "text": "#ece6d8", "font": "pixel", **(ui or {})},
-         "terms": terms or {}, "voices": {"narrator": dict(tts.DEFAULT_NARRATOR)}}
+         "terms": terms or {}, "voices": {"narrator": dict(tts.DEFAULT_NARRATOR)},
+         "library": {"mode": "open", "core": True, "include_tags": [], "include": [], "exclude": [],
+                     **(library_ or {})}}
     store.write_json(d / "theme.json", t)
     assets.save_manifest(slug, {"assets": {}})
     return {"slug": slug, "path": str(d)}
@@ -300,6 +307,8 @@ def set_character(fields: dict, target: str = "player") -> dict:
     portrait: recipe {"layers":["tpl:p_base","tpl:p_face_{expr}","tpl:p_outfit_shirt","tpl:p_hair_short"],"colors":{...}}.
     Setting a recipe replaces it (lists replace)."""
     with _campaign() as c:
+        for k in ("sprite", "portrait"):
+            library.check_recipe(c["theme"], fields.get(k), f"{target}.{k}")
         actor, _ = _find_actor(c, target)
         for k in ("sprite", "portrait"):
             if k in fields and isinstance(fields[k], (list, str)):
@@ -313,6 +322,8 @@ def set_character(fields: dict, target: str = "player") -> dict:
 def add_companion(companion: dict) -> dict:
     """Add a DM-run companion to the party. companion: {id,name,archetype,personality,stats,resources,sprite,portrait,attitude(-100..100)}"""
     with _campaign() as c:
+        for k in ("sprite", "portrait"):
+            library.check_recipe(c["theme"], (companion or {}).get(k), f"companion.{k}")
         comp = {**_new_character(), "attitude": 0, **companion}
         comp["id"] = slugify(comp.get("id") or comp.get("name"))
         c["party"] = [p for p in c["party"] if p["id"] != comp["id"]] + [comp]
@@ -385,9 +396,10 @@ def get_state(include_dm: bool = True, full: bool = False) -> dict:
 # =====================================================================
 @tool
 def find_assets(query: str = "", category: str = "", tags: list | None = None, limit: int = 30) -> dict:
-    """Search the active theme's library AND the shared template library before creating anything.
-    category: character|portrait|creature|tile|object|item|icon|backdrop. Results give 'ref' usable in recipes
-    ('tpl:<name>' for shared templates, bare id for theme assets). Templates list their params."""
+    """Search the active theme's library before creating anything - its own assets plus the procedural templates
+    the theme admits. A locked theme only ever shows (and only ever allows) parts that fit its genre; referencing
+    anything else raises. category: character|portrait|creature|tile|object|item|icon|backdrop. Results give 'ref'
+    usable in recipes ('tpl:<name>' for templates, bare id for theme assets). Templates list their params."""
     slug = None
     with contextlib.suppress(DMError):
         slug = _load()["theme"]
@@ -459,6 +471,7 @@ def create_npc(id: str, name: str, role: str, desc: str, personality: str = "", 
     facts (met, killed, attitude) go in the campaign via npc_state, not here.
     voice: {"voice":"en-GB-RyanNeural","rate":"-5%","pitch":"-3Hz","fx":"radio|robot|echo|deep|"} (see list_voices)."""
     slug = _load()["theme"]
+    library.check_recipe(slug, sprite, "npc.sprite"); library.check_recipe(slug, portrait, "npc.portrait")
     nid = slugify(id).replace("-", "_")
     n = {"id": nid, "name": name, "role": role, "desc": desc, "personality": personality, "voice": voice,
          "sprite": sprite or {"layers": []}, "portrait": portrait or {"layers": []}, "stats": stats or {},
@@ -568,6 +581,12 @@ def create_map(id: str, name: str, rows: list, legend: dict, desc: str = "", tag
     missing = sorted({ch for r in rows for ch in r if ch not in legend})
     if missing:
         raise DMError(f"legend missing chars: {missing}")
+    library.check_recipe(slug, backdrop, "map backdrop")
+    for ch, ent in (legend or {}).items():
+        tile = ent.get("tile") if isinstance(ent, dict) else ent
+        library.check_recipe(slug, tile, f"legend '{ch}'")
+    for o in (objects or []):
+        library.check_recipe(slug, o.get("sprite") or o.get("part"), "map object")
     mid = slugify(id).replace("-", "_")
     m = {"id": mid, "name": name, "desc": desc, "tags": tags or [], "w": w, "h": len(rows), "rows": rows,
          "legend": legend, "spawns": spawns or {}, "objects": objects or [], "backdrop": backdrop, "created": now_iso()}
@@ -668,6 +687,7 @@ def set_scene(mode: str = "scene", title: str = "", backdrop: dict | None = None
     time: e.g. 'dawn','day','dusk','night'; weather: 'clear','rain','fog','snow','storm'. mood tints the stage:
     'warm','cold','eerie','danger','calm','dark'."""
     with _campaign() as c:
+        library.check_recipe(c["theme"], backdrop, "backdrop")
         s = c["scene"]
         s["mode"] = mode
         if title:
@@ -754,6 +774,7 @@ def spawn(id: str, name: str = "", sprite: dict | None = None, portrait: dict | 
     Map mode: tile x,y. Scene mode: slot = horizontal position 0-100 (%). side: ally|enemy|neutral|object.
     hp shows a health bar. scale: 1 normal, 2 = big (bosses)."""
     with _campaign() as c:
+        library.check_recipe(c["theme"], sprite, "sprite"); library.check_recipe(c["theme"], portrait, "portrait")
         e = {"id": slugify(id).replace("-", "_"), "name": name or id, "side": side, "flip": flip, "scale": scale,
              "expression": "neutral", "conditions": [], "note": note}
         if npc:
@@ -782,6 +803,8 @@ def update_entity(id: str, changes: dict) -> dict:
     """Change a stage entity: {"x":..,"y":..} move on map, {"slot":30} move in scene, {"expression":"angry"},
     {"flip":true}, {"hidden":true}, {"hp":{"cur":3}}, {"sprite":{...}}, {"side":"enemy"}, {"name":..}."""
     with _campaign() as c:
+        for k in ("sprite", "portrait"):
+            library.check_recipe(c["theme"], (changes or {}).get(k), f"entity.{k}")
         e, _ = _find_actor(c, id)
         _deep_merge(e, changes)
     store.push_event("move" if ("x" in changes or "slot" in changes) else "state", {"id": id})

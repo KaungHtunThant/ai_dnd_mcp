@@ -14,6 +14,11 @@ if errorlevel 1 goto :err
 ".venv\Scripts\python.exe" -m pip install --upgrade pip
 ".venv\Scripts\python.exe" -m pip install -r engine\requirements.txt
 if errorlevel 1 goto :err
+echo.
+echo === Local settings ===
+".venv\Scripts\python.exe" engine\tools\init_config.py
+if errorlevel 1 goto :err
+echo.
 ".venv\Scripts\python.exe" engine\register_mcp.py
 if errorlevel 1 goto :err
 echo.
