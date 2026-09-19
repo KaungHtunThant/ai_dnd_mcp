@@ -12,6 +12,7 @@ on engine/core/templates.py.
 import os, sys, json, html
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from core import store, assets, library
+from core import style as _style
 
 ORDER = ["character", "portrait", "creature", "tile", "object", "item", "icon", "backdrop"]
 
@@ -40,6 +41,7 @@ def build(slug):
                    "panel": ui.get("panel", "#221d2c"), "accent": ui.get("accent", "#c9a24a")}
     tpls = library.templates_for(slug)
     lock = library.summary(slug)
+    sty = (theme.get("style") or _style.DEFAULT)
     d = assets.theme_dir(slug)
 
     h = ["<!doctype html><meta charset=utf-8>",
@@ -48,9 +50,10 @@ def build(slug):
          f"<h1>{html.escape(theme.get('name', slug))}</h1>",
          f"<p class=note>{html.escape(theme.get('description', ''))}</p>",
          f"<p class=note>Vocabulary: <b>{lock['mode']}</b> &middot; {lock['templates']} shared parts admitted"
+         f" &middot; art style <b>{html.escape(_style.get(sty)['name'])}</b>"
          f" &middot; drawn in this theme's palette. Recipes reference them as <code>tpl:&lt;name&gt;</code>.</p>"]
     md = [f"# {theme.get('name', slug)} - part catalog", "",
-          f"Vocabulary: **{lock['mode']}**, {lock['templates']} shared parts admitted.",
+          f"Vocabulary: **{lock['mode']}**, {lock['templates']} shared parts admitted. Art style: **{sty}**.",
           "Reference with `tpl:<name>` in recipes. Colour slots: skin hair top accent legs boots metal wood glow "
           "eyes white mouth primary secondary detail outline.", ""]
 

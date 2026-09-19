@@ -27,10 +27,13 @@ starts with the player typing one word in chat (e.g. "go" or "init"). Then:
 1. Call `init()`, which makes sure the UI is up, then loop on `await_action(timeout_s=50)`, including while the player
    is on the main menu. The menu shows "DM connected" while you're listening.
 2. Menu requests come through `await_action` as actions with `type`:
-   - **`build_theme`** `data={description, mood, base}`. If `base` is set, modify that existing theme (`update_theme`,
-     add archetypes and so on). Otherwise `create_theme` (6 themed stats, themed resources, currency, 3–5 archetypes
-     with `stat_bonus`, conditions, `ui` including `ui.dice={color, ink, style:'gem'|'neon', font}`, and
-     `terms`). Also set `menu_backdrop` (a backdrop recipe) with `update_theme` and a narrator voice with `set_voice`.
+   - **`build_theme`** `data={description, mood, base, style}`. If `base` is set, modify that existing theme
+     (`update_theme`, add archetypes and so on). Otherwise `create_theme` (6 themed stats, themed resources, currency,
+     3–5 archetypes with `stat_bonus`, conditions, `ui` including `ui.dice={color, ink, style:'gem'|'neon', font}`,
+     `library_` for the art vocabulary, and `terms`). **`data.style` is the art style the player picked on the wizard's
+     first page — pass it straight through as `create_theme(style=...)` and never substitute your own.** Design the
+     palette to suit it (a `gameboy` or `sepia` theme is quantised to one ramp, `noir` is nearly colourless, so put the
+     character in the shapes and the contrast rather than in hue). Also set `menu_backdrop` (a backdrop recipe) with `update_theme` and a narrator voice with `set_voice`.
      Report progress with `loading(label, percent)`, then call **`theme_ready(slug, note)`** (or
      `theme_failed(reason)`). The wizard then moves on to its next page.
    - **`new_game`** `data={campaign, party, notes}`. The campaign file already exists (status `setup`) and holds the
@@ -125,6 +128,11 @@ The player's input arrives from the browser action bar. Check `get_state()`'s co
 - **Map mode:** `create_map(rows, legend)` with small maps (~12–24 × 8–16). Legend char →
   `{"tile":"tpl:tile_*","solid":bool,"name":..,"colors":{},"under":"."}`. Then `load_map` → `move_player` (auto-reveal) →
   `spawn(x,y)` → `marker`.
+- **Art style:** one id restyles every part in the game — classic, flat, neon, noir, pastel, ink, sepia, gameboy
+  (`list_styles`). It transforms the final colour of every pixel plus outlines and shading depth; there is no separate
+  artwork. The player chooses it in the wizard before anything is generated. `set_style(id, scope="campaign")` restyles
+  just this run, `scope="theme"` changes the theme's default. Resolution is campaign → theme → classic. Only change it
+  if the player asks.
 - **Custom art** (only if needed): `create_asset(rows=[...])` with the legend chars
   (o outline, s skin, h hair, t top, a accent, m metal, w wood, g glow, p primary, k secondary, `.` transparent,
   uppercase = dark shade). Sizes: sprite 16×24, portrait 32×32, tile 16×16, backdrop 96×54.

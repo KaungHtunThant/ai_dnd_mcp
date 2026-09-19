@@ -3,6 +3,7 @@ from __future__ import annotations
 import json, functools
 from pathlib import Path
 from . import store, library
+from . import style as _style
 from .pixel import Canvas, grid_rects, resolve_colors, svg_doc, render_grid
 from .templates import TEMPLATES, build_template
 
@@ -16,6 +17,31 @@ def theme_dir(slug) -> Path:
 
 def load_theme(slug) -> dict:
     return store.read_json(theme_dir(slug) / "theme.json", None)
+
+
+@functools.lru_cache(maxsize=32)
+def _style_for(slug, _theme_stamp, _camp_stamp):
+    cid = store.runtime().get("active")
+    if cid:
+        c = store.read_json(store.CAMPAIGNS / f"{cid}.json", None) or {}
+        if c.get("theme") == slug and c.get("style"):
+            return c["style"]                      # per-campaign override
+    return (load_theme(slug) or {}).get("style") or _style.DEFAULT
+
+
+def theme_style(slug):
+    """The art style for a slug: the active campaign's override if it has one, else the
+    theme's own, else 'classic'. Cached on file mtimes so a render is not a file read."""
+    if not slug:
+        return _style.DEFAULT
+    cid = store.runtime().get("active")
+    camp = store.CAMPAIGNS / f"{cid}.json" if cid else None
+    def m(p):
+        try:
+            return p.stat().st_mtime if p else 0.0
+        except OSError:
+            return 0.0
+    return _style_for(slug, m(theme_dir(slug) / "theme.json"), m(camp))
 
 
 def manifest(slug) -> dict:
@@ -82,7 +108,7 @@ def _norm_layer(l):
     return dict(l)
 
 
-def render_recipe(slug, recipe, palette=None, expression=None, scale=1):
+def render_recipe(slug, recipe, palette=None, expression=None, scale=1, st=None):
     """Composite a recipe to SVG.
     recipe = {"layers":[ "tpl:body" | {"part":..,"colors":{},"params":{},"dx":0,"dy":0} ],
               "colors":{slot:hex}, "params":{..shared template params..},
@@ -93,6 +119,7 @@ def render_recipe(slug, recipe, palette=None, expression=None, scale=1):
     if isinstance(recipe, str):
         recipe = {"layers": [recipe]}
     expr = expression or recipe.get("expression") or "neutral"
+    st = _style.get(st or recipe.get("style") or theme_style(slug))
     gparams = recipe.get("params", {})
     parts = []
     for i, l in enumerate(recipe.get("layers", [])):
@@ -114,7 +141,7 @@ def render_recipe(slug, recipe, palette=None, expression=None, scale=1):
     for _, _, p, l in parts:
         cols = resolve_colors(palette or {}, p["colors"], recipe.get("colors", {}), l.get("colors", {}))
         ox = (W - p["w"]) // 2 + l.get("dx", 0); oy = (H - p["h"]) + l.get("dy", 0)
-        body += grid_rects(p["rows"], p["legend"], cols, ox, oy)
+        body += grid_rects(p["rows"], p["legend"], cols, ox, oy, st=st)
     inner = "".join(body)
     if recipe.get("flip"):
         inner = f'<g transform="translate({W},0) scale(-1,1)">{inner}</g>'
@@ -212,8 +239,9 @@ def load_map(slug, mid):
     return store.read_json(map_path(slug, mid), None)
 
 
-def render_map(slug, m, palette=None):
+def render_map(slug, m, palette=None, st=None):
     """Whole map as one SVG using <symbol>/<use> per legend char. 16px per tile."""
+    st = _style.get(st or theme_style(slug))
     T = 16
     W, H = m["w"], m["h"]
     defs, uses = [], []
@@ -225,7 +253,7 @@ def render_map(slug, m, palette=None):
         cols = resolve_colors(palette or {}, p["colors"], ent.get("colors", {}))
         sid = "t%d" % ord(ch)
         defs.append(f'<symbol id="{sid}" viewBox="0 0 16 16" width="16" height="16">' +
-                    "".join(grid_rects(p["rows"], p["legend"], cols)) + "</symbol>")
+                    "".join(grid_rects(p["rows"], p["legend"], cols, st=st)) + "</symbol>")
         if ent.get("under"):
             pass
     for y, row in enumerate(m["rows"]):
@@ -240,7 +268,7 @@ def render_map(slug, m, palette=None):
     # static decorations
     for o in m.get("objects", []):
         rec = o.get("sprite") or {"layers": [o.get("part")]}
-        svg = render_recipe(slug, rec, palette)
+        svg = render_recipe(slug, rec, palette, st=st)
         inner = svg[svg.index(">") + 1:-6]
         vb = svg.split('viewBox="0 0 ')[1].split('"')[0].split()
         w, h = int(vb[0]), int(vb[1])

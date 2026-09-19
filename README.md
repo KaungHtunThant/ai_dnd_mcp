@@ -32,6 +32,12 @@ Claude DnD/
   config.sample.json  the committed template config.json is created from
 ```
 
+## Art styles
+Before anything is generated, the New Game wizard asks for an **art style**: *Classic, Flat, Neon, Noir, Pastel,
+Ink Wash, Sepia* or *Game Boy*. It is not a second set of artwork — it transforms the final colour of every pixel,
+plus outlines and shading depth, so one click restyles every sprite, portrait, tile, item and backdrop in the game.
+The picker previews each one live. A style is saved on the theme and can be overridden for a single campaign.
+
 ## How the art works
 Everything is pixel art built from layers (body, clothes, hair, hats, gear; portrait base, face expression, outfit...)
 and recoloured through named colour slots. The engine ships ≈210 procedural parts, but each theme is **locked to its

@@ -7,6 +7,7 @@ from __future__ import annotations
 import copy, contextlib, random
 from pathlib import Path
 from . import store, assets, dice, tts, library
+from . import style as _style
 import time as _time
 from .store import slugify, now_iso
 
@@ -190,7 +191,8 @@ def theme_info(theme: str) -> dict:
     by = {}
     for aid, meta in m["assets"].items():
         by.setdefault(meta["category"], []).append(aid)
-    return {"theme": t, "assets": by, "library": {**library.summary(theme), "split_pairs": library.split_pairs(theme)},
+    return {"theme": t, "assets": by, "style": assets.theme_style(theme),
+            "library": {**library.summary(theme), "split_pairs": library.split_pairs(theme)},
             "maps": [p.stem for p in (d / "maps").glob("*.json")],
             "npcs": [p.stem for p in (d / "npcs").glob("*.json")],
             "lore": [p.stem for p in (d / "lore").glob("*.md")],
@@ -198,10 +200,42 @@ def theme_info(theme: str) -> dict:
 
 
 @tool
+def list_styles() -> dict:
+    """The art styles a theme or campaign can use. A style is not different artwork - it recolours every part in the
+    game (sprites, portraits, tiles, backdrops, icons) and changes outlines and shading, so one choice restyles
+    everything. The player picks one in the New Game wizard before anything is generated."""
+    return {"styles": _style.listing(), "default": _style.DEFAULT}
+
+
+@tool
+def set_style(style: str, scope: str = "campaign") -> dict:
+    """Set the art style. scope 'campaign' restyles just this run (stored on the campaign, overrides the theme);
+    scope 'theme' changes the theme's own default for every campaign in it. Ids: classic flat neon noir pastel ink
+    sepia gameboy (list_styles). Takes effect on the next redraw - the player sees it immediately."""
+    sid = str(style or "").strip().lower()
+    if sid not in _style.STYLES:
+        raise DMError(f"unknown style '{style}'. Options: {', '.join(_style.ORDER)}")
+    if scope == "theme":
+        slug = _load()["theme"]
+        p = assets.theme_dir(slug) / "theme.json"
+        t = store.read_json(p, None)
+        if not t:
+            raise DMError("theme not found")
+        t["style"] = sid
+        store.write_json(p, t)
+    else:
+        with _campaign() as c:
+            c["style"] = sid
+    store.push_event("reload")
+    store.touch()
+    return {"ok": True, "style": sid, "scope": scope, "name": _style.STYLES[sid]["name"]}
+
+
+@tool
 def create_theme(name: str, description: str, palette: dict | None = None, stats: list | None = None,
                  resources: list | None = None, currency: dict | None = None, archetypes: list | None = None,
                  conditions: dict | None = None, ui: dict | None = None, tone: str = "", terms: dict | None = None,
-                 library_: dict | None = None) -> dict:
+                 library_: dict | None = None, style: str = "") -> dict:
     """Create a NEW theme folder (only if no existing theme fits). Everything is reused by later campaigns.
     palette: default colour slots, e.g. {"outline":"#1a1523","skin":"#e0a878","top":"#3d6fa8","accent":"#c9a24a",
       "metal":"#9aa4b1","glow":"#7fe3ff","primary":"#6b6f7e","secondary":"#4f8a4b"}.
@@ -214,7 +248,10 @@ def create_theme(name: str, description: str, palette: dict | None = None, stats
       "include_tags":["scifi","cyber","tech","modern","punk","urban"], "include":["tpl:obj_*","cr_drone"],
       "exclude":["hair_bun"]}. core=true admits the genre-neutral scaffolding (bodies, faces, hair, every UI icon,
       tile_void); include/exclude take template names or globs and exclude is applied last. Anything outside the set
-      is then refused by find_assets and by every recipe. Omit it and the theme stays "open" (all 211 templates)."""
+      is then refused by find_assets and by every recipe. Omit it and the theme stays "open" (all 211 templates).
+    style: art style id - classic flat neon noir pastel ink sepia gameboy (list_styles). It recolours every part in
+      the game, so pick the one that suits the genre. The wizard usually sets this already; don't override the
+      player's choice."""
     slug = slugify(name)
     d = assets.theme_dir(slug)
     if (d / "theme.json").exists():
@@ -227,6 +264,7 @@ def create_theme(name: str, description: str, palette: dict | None = None, stats
          "conditions": {**DEFAULT_CONDITIONS, **(conditions or {})},
          "ui": {"accent": "#c9a24a", "bg": "#15121c", "panel": "#221d2c", "text": "#ece6d8", "font": "pixel", **(ui or {})},
          "terms": terms or {}, "voices": {"narrator": dict(tts.DEFAULT_NARRATOR)},
+         "style": style or _style.DEFAULT,
          "library": {"mode": "open", "core": True, "include_tags": [], "include": [], "exclude": [],
                      **(library_ or {})}}
     store.write_json(d / "theme.json", t)
@@ -272,6 +310,7 @@ def new_campaign(name: str, theme: str, settings: dict | None = None, player: di
          "world": {"map": None, "pos": None, "maps": {}, "flags": {}, "npcs": {}, "time": "", "weather": "",
                    "location": ""},
          "quests": [], "journal": [], "log": [], "rolls": [],
+         "style": None,   # None = inherit the theme's art style; set_style(scope="campaign") overrides it
          "scene": {"mode": "setup", "title": "", "backdrop": None, "entities": [], "dialogue": None, "showcase": None},
          "combat": {"active": False, "round": 0, "order": [], "turn_index": 0},
          "dm": {"scenario": {}, "secrets": [], "notes": [], "plans": []}, "snapshots": [],
@@ -1409,6 +1448,8 @@ def campaign_from_wizard(d: dict) -> str:
     r = new_campaign(name, theme, {k: rules.get(k) for k in ("tone", "content_limits", "limits_note", "difficulty",
                                                                    "permadeath", "session_length") if rules.get(k) is not None},
                      {"source": "browser wizard"})
+    if d.get("style"):
+        set_style(d["style"], scope=("theme" if d.get("style_scope") == "theme" else "campaign"))
     ch["hooks"] = [h.strip() for h in (ch.get("hooks") or []) if h and str(h).strip()]
     fields = {k: ch.get(k) for k in ("name", "pronouns", "archetype", "stats", "sprite", "portrait", "backstory", "hooks")
               if ch.get(k) not in (None, "", [], {})}

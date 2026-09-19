@@ -12,10 +12,14 @@ let voiceOn = false, volume = 0.9, sfxOn = true, textSpeed = 'normal';
 // ---------- rendering urls ----------
 function norm(r){ if(!r) return null; if(Array.isArray(r)) return {layers:r}; if(typeof r==='string') return {layers:[r]}; return r; }
 function stable(o){ if(Array.isArray(o)) return '['+o.map(stable).join(',')+']'; if(o && typeof o==='object') return '{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+stable(o[k])).join(',')+'}'; return JSON.stringify(o); }
-function rurl(recipe, expr, theme){ const r = norm(recipe); if(!r || !(r.layers||[]).length) return null;
-  const th = theme || S?.campaign?.theme || '_'; return `/r/${th}.svg?r=${encodeURIComponent(stable(r))}` + (expr?`&e=${encodeURIComponent(expr)}`:''); }
-function purl(ref, colors, theme){ if(!ref) return null; const th = theme || S?.campaign?.theme || '_';
-  return `/part/${th}/${encodeURIComponent(ref)}.svg` + (colors?`?c=${encodeURIComponent(stable(colors))}`:''); }
+// the active art style rides in every image URL, so changing it busts the browser cache
+function activeStyle(){ return S?.campaign?.style || S?.theme?.style || ''; }
+function rurl(recipe, expr, theme, st){ const r = norm(recipe); if(!r || !(r.layers||[]).length) return null;
+  const th = theme || S?.campaign?.theme || '_'; const y = st || activeStyle();
+  return `/r/${th}.svg?r=${encodeURIComponent(stable(r))}` + (expr?`&e=${encodeURIComponent(expr)}`:'') + (y?`&st=${encodeURIComponent(y)}`:''); }
+function purl(ref, colors, theme, st){ if(!ref) return null; const th = theme || S?.campaign?.theme || '_';
+  const y = st || activeStyle(); const q = [colors?`c=${encodeURIComponent(stable(colors))}`:'', y?`st=${encodeURIComponent(y)}`:''].filter(Boolean).join('&');
+  return `/part/${th}/${encodeURIComponent(ref)}.svg` + (q?`?${q}`:''); }
 function img(src, cls){ const i = el('img', cls); if(src) i.src = src; i.alt=''; return i; }
 const term = (k, d) => (S?.theme?.terms||{})[k] || d;
 

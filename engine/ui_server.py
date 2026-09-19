@@ -12,6 +12,7 @@ from urllib.parse import urlparse, parse_qs, unquote
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from core import store, assets, api, tts, dice, library  # noqa: E402
+from core import style as _style  # noqa: E402
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 
@@ -24,10 +25,11 @@ def _mtime(p):
 
 
 @functools.lru_cache(maxsize=4096)
-def _render(theme, recipe_json, expr, ver):
+def _render(theme, recipe_json, expr, ver, st=""):
     t = assets.load_theme(theme) if theme and theme != "_" else None
     try:
-        return assets.render_recipe(theme if t else None, json.loads(recipe_json), (t or {}).get("palette"), expr or None)
+        return assets.render_recipe(theme if t else None, json.loads(recipe_json), (t or {}).get("palette"),
+                                    expr or None, st=st or None)
     except library.NotInTheme:
         # a recipe saved before the theme's vocabulary narrowed: draw nothing rather than
         # breaking the screen. The DM still gets the hard error from the tool that stores it.
@@ -35,10 +37,19 @@ def _render(theme, recipe_json, expr, ver):
 
 
 @functools.lru_cache(maxsize=64)
-def _render_map(theme, mid, ver):
+def _render_map(theme, mid, ver, st=""):
     t = assets.load_theme(theme) or {}
     m = assets.load_map(theme, mid)
-    return assets.render_map(theme, m, t.get("palette")) if m else None
+    return assets.render_map(theme, m, t.get("palette"), st=st or None) if m else None
+
+
+def _style_for(theme, q=None):
+    """Style for this request: an explicit ?st= (the wizard previews with it), else whatever
+    the theme/active campaign resolves to. Always part of the render cache key."""
+    want = (q or {}).get("st", [""])[0] if q else ""
+    if want in _style.STYLES:
+        return want
+    return assets.theme_style(theme) if theme and theme != "_" else _style.DEFAULT
 
 
 def _ver(theme):
@@ -76,8 +87,10 @@ def menu_payload():
                 themes.append({"slug": d.name, "name": t.get("name"), "description": t.get("description"),
                                "tone": t.get("tone"), "archetypes": t.get("archetypes", []), "stats": t.get("stats", []),
                                "resources": t.get("resources", []), "ui": t.get("ui", {}), "backdrop": t.get("menu_backdrop"),
+                               "style": t.get("style") or _style.DEFAULT,
                                "assets": len(m["assets"]), "maps": len(list((d / "maps").glob("*.json")))})
     return {"saves": saves, "themes": themes, "draft": store.draft(), "control": store.control(), "dm": store.dm_status(),
+            "styles": _style.listing(), "default_style": _style.DEFAULT,
             "active": store.runtime().get("active"), "token": store.ui_token()}
 
 
@@ -308,7 +321,8 @@ class H(BaseHTTPRequestHandler):
             desc = str(body.get("description") or "").strip()
             if not desc:
                 return J(400, {"error": "Describe the theme first."})
-            data = {"description": desc[:2000], "mood": str(body.get("mood") or "")[:300], "base": body.get("base") or None}
+            data = {"description": desc[:2000], "mood": str(body.get("mood") or "")[:300], "base": body.get("base") or None,
+                    "style": body.get("style") if body.get("style") in _style.STYLES else None}
             _queue("build_theme", None, data, "build theme")
             store.update_draft({"theme_status": "building", "theme_request": data})
             store.set_loading("The DM is building your world...", None)
@@ -376,12 +390,12 @@ class H(BaseHTTPRequestHandler):
         if path.startswith("/r/") and path.endswith(".svg"):
             theme = path[3:-4]
             rj = q.get("r", ["{}"])[0]
-            svg = _render(theme, rj, q.get("e", [""])[0], _ver(theme))
+            svg = _render(theme, rj, q.get("e", [""])[0], _ver(theme), _style_for(theme, q))
             return self._send(200, svg, "image/svg+xml", cache=True)
         if path.startswith("/part/") and path.endswith(".svg"):
             theme, ref = path[6:-4].split("/", 1)
             rec = {"layers": [{"part": ref, "colors": json.loads(q.get("c", ["{}"])[0])}]}
-            svg = _render(theme, json.dumps(rec, sort_keys=True), "", _ver(theme))
+            svg = _render(theme, json.dumps(rec, sort_keys=True), "", _ver(theme), _style_for(theme, q))
             return self._send(200, svg, "image/svg+xml", cache=True)
         if path == "/tts":
             try:
@@ -405,7 +419,7 @@ class H(BaseHTTPRequestHandler):
                 return self._send(500, f"catalog build failed: {ex}", "text/plain")
         if path.startswith("/map/") and path.endswith(".svg"):
             theme, mid = path[5:-4].split("/", 1)
-            svg = _render_map(theme, mid, _ver(theme) + _mtime(assets.map_path(theme, mid)))
+            svg = _render_map(theme, mid, _ver(theme) + _mtime(assets.map_path(theme, mid)), _style_for(theme, q))
             return self._send(200 if svg else 404, svg or "", "image/svg+xml")
         return self._send(404, json.dumps({"error": "not found"}))
 

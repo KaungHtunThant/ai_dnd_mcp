@@ -7,6 +7,7 @@ so recolouring one slot recolours its shading too.
 """
 from __future__ import annotations
 import colorsys, math, random
+from . import style as _style
 
 # ---- standard legend used by every template -------------------------------
 STD_LEGEND = {
@@ -77,20 +78,25 @@ def resolve_colors(*layers: dict) -> dict:
     return out
 
 
-def color_of(token: str, colors: dict) -> str | None:
+def color_of(token: str, colors: dict, st=None) -> str | None:
+    """Final colour for one legend token. `st` is an art style (see core/style.py):
+    it sets how deep the automatic :d / :l shading goes, what an outline pixel does,
+    and a transform applied to every resulting colour."""
+    st = _style.get(st) if not isinstance(st, dict) or "saturation" not in (st or {}) else st
     if token.startswith("#"):
-        return norm_hex(token)
+        return _style.transform(norm_hex(token), st)
     base, _, mod = token.partition(":")
     col = colors.get(token) or colors.get(base) or DEFAULT_COLORS.get(base)
     if col is None:
         return None
+    if base == "outline":
+        return _style.outline_color(st, col)
     if token in colors:  # explicit shade given
-        return col
-    if mod == "d":
-        return shade(col, -0.32)
-    if mod == "l":
-        return shade(col, 0.30)
-    return col
+        return _style.transform(col, st)
+    if mod in ("d", "l"):
+        dark, light = _style.shade_amounts(st)
+        col = shade(col, dark if mod == "d" else light)
+    return _style.transform(col, st)
 
 
 # ---- canvas ---------------------------------------------------------------
@@ -241,7 +247,7 @@ class Canvas:
 
 
 # ---- SVG ------------------------------------------------------------------
-def grid_rects(rows, legend, colors, ox=0, oy=0, flip=False, w=None):
+def grid_rects(rows, legend, colors, ox=0, oy=0, flip=False, w=None, st=None):
     """Return list of svg <rect> strings, merging horizontal runs."""
     legend = {**STD_LEGEND, **(legend or {})}
     out = []
@@ -260,7 +266,7 @@ def grid_rects(rows, legend, colors, ox=0, oy=0, flip=False, w=None):
             if tok is None:
                 x += 1
                 continue
-            col = color_of(tok, colors)
+            col = color_of(tok, colors, st)
             if col is None:
                 x += 1
                 continue
@@ -281,7 +287,7 @@ def svg_doc(w, h, body, scale=1):
             + "".join(body) + "</svg>")
 
 
-def render_grid(rows, legend=None, colors=None, scale=1):
+def render_grid(rows, legend=None, colors=None, scale=1, st=None):
     w = max(len(r) for r in rows) if rows else 1
     h = len(rows)
-    return svg_doc(w, h, grid_rects(rows, legend, resolve_colors(colors)), scale)
+    return svg_doc(w, h, grid_rects(rows, legend, resolve_colors(colors), st=st), scale)

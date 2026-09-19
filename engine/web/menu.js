@@ -179,6 +179,10 @@ const EXTRAS = {beard:['beard','p_beard'], mustache:[null,'p_mustache'], glasses
   scar:[null,'p_scar'], mask:['mask','p_mask'], marks:[null,'p_marks'], 'pointed ears':['ears_pointy','p_ears_pointy'], earring:[null,'p_earring'], horns:['horns','p_horns']};
 const HELD = ['none','sword','staff','dagger','gun','rifle','bow','axe','torch'], OFF = ['none','shield','lantern','book'], BACK = ['none','cloak','wings','tail'];
 const EXPR = ['neutral','happy','angry','sad','surprised','smirk','determined','scared'];
+const STY_SPRITE = {layers:['tpl:body','tpl:legs_pants','tpl:boots','tpl:top_jacket','tpl:hair_short','tpl:held_gun'],
+  colors:{skin:'#c98e62', hair:'#8a3aff', top:'#2b3a6b', accent:'#ff8a3a', metal:'#9aa4b1', glow:'#2ff0ff'}};
+const STY_PORTRAIT = {layers:['tpl:p_base','tpl:p_face_determined','tpl:p_outfit_coat','tpl:p_hair_short'],
+  colors:{skin:'#c98e62', hair:'#8a3aff', top:'#2b3a6b', accent:'#ff8a3a'}};
 const COST = {8:0,9:1,10:2,11:3,12:4,13:5,14:7,15:9};
 const ARRAY = [15,14,13,12,10,8];
 
@@ -186,7 +190,7 @@ function newDraft(){ return { page: 1, theme: null, rules: { tone: [], content_l
   character: { name: '', pronouns: 'they/them', archetype: '', stats_method: 'array', stats: {}, rolled: [], assign: {},
     look: { build:'normal', skin:'#d9a37a', hair:'short', hair_color:'#3a2a1a', eyes:'#2a2233', jaw:'normal', outfit:'shirt', top:'#3d6fa8', accent:'#c9a24a',
             legs:'pants', legs_color:'#4a4358', boots:true, boots_color:'#5b3a26', hat:'none', extras:[], held:'none', offhand:'none', back:'none', theme_parts:[] },
-    backstory: '', hooks: ['', '', ''] }, party: { mode: 'solo', notes: '' }, campaign_name: '' }; }
+    backstory: '', hooks: ['', '', ''] }, party: { mode: 'solo', notes: '' }, campaign_name: '', style: null }; }
 function startWizard(){ wiz = (M.draft && M.draft.page) ? mergeDraft(newDraft(), M.draft) : newDraft(); }
 function mergeDraft(a, b){ for (const k in b){ if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) && a[k] && typeof a[k] === 'object') mergeDraft(a[k], b[k]); else a[k] = b[k]; } return a; }
 function saveDraft(){ clearTimeout(saveT); saveT = setTimeout(() => { buildRecipes(); post('/api/draft', {draft: wiz}).catch(()=>{}); }, 500); }
@@ -253,18 +257,34 @@ function pgTheme(b){
       <textarea id="nt-desc" placeholder="Describe the world in your own words: genre, setting, mood, what kind of stories you want. e.g. 'Cyberpunk megacity, rain and neon, corporate espionage and street samurai.'">${esc((wiz.new_theme||{}).description||'')}</textarea>
       <input id="nt-mood" placeholder="Optional mood words (e.g. noir, hopeful, brutal)" value="${esc((wiz.new_theme||{}).mood||'')}">
       <button class="mbtn primary" id="nt-go">Build this theme</button>
-      <div class="hint">The DM designs the stats, resources, archetypes, colours and narrator voice. Takes about a minute and needs the DM connected.</div></div>`;
+      <div class="hint">The DM designs the stats, resources, archetypes, colours and narrator voice. Takes about a minute and needs the DM connected.</div></div>
+    ${pgStyleBlock()}`;
+  wireStyle(b);
   b.querySelectorAll('.th').forEach(c => {
     c.querySelector('[data-pick]').onclick = () => { wiz.theme = c.dataset.slug; wiz.theme_status = null; saveDraft(); renderPage(); };
     c.querySelector('[data-mod]').onclick = () => c.querySelector('.th-modbox').classList.toggle('hidden');
     c.querySelector('[data-send]').onclick = () => { const t = c.querySelector('textarea').value.trim(); if (!t) return;
       wiz.theme = c.dataset.slug; wiz.theme_status = 'building'; saveDraft();
-      post('/api/wizard/build_theme', {description: t, base: c.dataset.slug}).then(refresh).catch(x => err(x.message)); };
+      post('/api/wizard/build_theme', {description: t, base: c.dataset.slug, style: curStyle()}).then(refresh).catch(x => err(x.message)); };
   });
   $('#nt-desc').oninput = e => { wiz.new_theme = {...(wiz.new_theme||{}), description: e.target.value}; saveDraft(); };
   $('#nt-mood').oninput = e => { wiz.new_theme = {...(wiz.new_theme||{}), mood: e.target.value}; saveDraft(); };
   $('#nt-go').onclick = () => { const d = (wiz.new_theme||{}); if (!(d.description||'').trim()) return err('Describe the theme first.');
-    wiz.theme_status = 'building'; saveDraft(); post('/api/wizard/build_theme', {description: d.description, mood: d.mood}).then(refresh).catch(x => err(x.message)); };
+    wiz.theme_status = 'building'; saveDraft();
+    post('/api/wizard/build_theme', {description: d.description, mood: d.mood, style: curStyle()}).then(refresh).catch(x => err(x.message)); };
+}
+function curStyle(){ const T = theme(); return wiz.style || (T && T.style) || M.default_style || 'classic'; }
+function pgStyleBlock(){
+  const cur = curStyle();
+  const cards = (M.styles||[]).map(x => `<div class="sty ${x.id===cur?'on':''}" data-sty="${esc(x.id)}" title="${esc(x.blurb)}">
+      <div class="sty-fig"><img src="${rurl(STY_PORTRAIT,'determined',wiz.theme,x.id)}" alt=""><img class="sp" src="${rurl(STY_SPRITE,null,wiz.theme,x.id)}" alt=""></div>
+      <div class="sty-name">${esc(x.name)}</div><div class="sty-blurb">${esc(x.blurb)}</div></div>`).join('');
+  return `<h3>Art style</h3><div class="hint hint-top">Chosen before anything is drawn. It restyles every sprite,
+    portrait, tile and backdrop in the game &mdash; no new artwork, the same parts rendered differently.</div>
+    <div class="styles">${cards}</div>`;
+}
+function wireStyle(b){
+  b.querySelectorAll('.sty').forEach(c => c.onclick = () => { wiz.style = c.dataset.sty; saveDraft(); renderPage(); });
 }
 // ---- page 2: rules
 function chips(list, sel, key){ return list.map(x => `<button class="chip2 ${sel.includes(x)?'on':''}" data-${key}="${esc(x)}">${esc(x)}</button>`).join(''); }
@@ -407,6 +427,7 @@ function pgReview(b){
 async function begin(){
   for (let p = 1; p < PAGES.length; p++) if (!valid(p, true)){ wiz.page = p; renderPage(); valid(p); return; }
   buildRecipes();
+  wiz.style = curStyle();
   try { await busy('Creating your campaign…', () => post('/api/wizard/begin', {draft: wiz})); wiz = null; await CD.fetchState(); }
   catch(e){ err(e.message); }
 }

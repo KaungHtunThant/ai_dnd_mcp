@@ -57,6 +57,9 @@ what the player sees and a prompt (no forced menu unless helpful). 6. `end_turn(
 - Colour slots: skin hair top accent legs boots metal wood glow eyes white mouth primary secondary detail outline
   (each gets auto dark/light shades).
 - Backdrops (scene mode): bd_outdoor(trees=pine|round|none) bd_interior bd_city bd_cave bd_void bd_ruins bd_tech.
+- **Art style** (`list_styles` / `set_style`): classic flat neon noir pastel ink sepia gameboy. A style is a colour,
+  outline and shading transform over the same parts, so it restyles everything at once. Stored on the theme, overridden
+  per campaign. The player picks it in the wizard; do not change it unasked.
 - Themes are **locked to a vocabulary**: `find_assets` only lists what the theme admits, and referencing a real
   template outside it raises `NotInTheme`. The lists above are the whole engine library, not necessarily this theme's.
 - Full list for the active theme: `themes/<slug>/TEMPLATES.md` / visual: `/catalog` in the browser

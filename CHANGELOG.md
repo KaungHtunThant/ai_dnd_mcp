@@ -4,6 +4,36 @@ All notable changes to Claude DnD. Newest first.
 
 ## Unreleased
 
+### Art styles, chosen before anything is generated
+
+The New Game wizard now asks for an art style on its first page, next to the theme.
+A style is not a second set of artwork: it transforms the final colour of every pixel
+and changes how outlines and automatic shading behave, so one choice restyles every
+sprite, portrait, tile, item and backdrop at once.
+
+**Added**
+- `engine/core/style.py` with eight styles — Classic, Flat, Neon, Noir, Pastel,
+  Ink Wash, Sepia, Game Boy. Each sets `saturation`, `lightness`, `contrast` (the depth
+  of the `:d` / `:l` shading, 0 = flat), an `outline` mode (`dark` / `none` / `light` /
+  a hex) and an optional `ramp` that quantises every colour to one palette by luminance,
+  which is what makes Sepia and Game Boy read as a single ink.
+- Art style picker on wizard page 1, with a live-rendered portrait and sprite per style.
+- `list_styles()` and `set_style(style, scope="campaign"|"theme")` tools. `theme_info`
+  reports the resolved style.
+- `theme.json["style"]` is the theme default; a campaign may override it. Resolution is
+  campaign -> theme -> classic, cached on file mtimes so a render is not a file read.
+- `?st=` on `/r/`, `/part/` and `/map/`, used by the picker to preview and part of the
+  render cache key.
+
+**Changed**
+- `pixel.color_of` / `grid_rects` / `render_grid`, `assets.render_recipe` /
+  `render_map` take a style; `create_theme(style=...)` sets it at build time.
+- The wizard's choice rides along with `build_theme`, so a theme the DM builds is born
+  in the chosen style, and `campaign_from_wizard` applies it to the campaign.
+- Image URLs in the front end carry the active style, so changing it busts the browser
+  cache instead of showing stale art.
+- A theme's catalog renders in, and names, its style.
+
 ### Theme-locked art library
 
 The ~210 procedural parts (`tpl:*`) used to be a single global library that every
