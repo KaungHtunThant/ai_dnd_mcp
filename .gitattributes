@@ -1,0 +1,11 @@
+# Normalise line endings: LF in the repo, native in the working tree.
+# Keeps build_catalog.py output (catalog.html / TEMPLATES.md) from showing a
+# whole-file diff when it is regenerated from WSL instead of Windows.
+* text=auto
+
+# Windows scripts must keep CRLF on checkout.
+*.bat text eol=crlf
+
+# Generated art catalog: large and machine-written, not worth diffing.
+shared/catalog.html linguist-generated=true
+engine/TEMPLATES.md linguist-generated=true

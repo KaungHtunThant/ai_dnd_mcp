@@ -27,5 +27,9 @@ campaigns/snapshots/
 themes/*/
 !themes/README.txt
 
+# Serena code-intelligence state (project config, symbol cache, memories)
+.serena/
+serena.md
+
 # Claude desktop config backups
 claude_desktop_config.backup-*.json
